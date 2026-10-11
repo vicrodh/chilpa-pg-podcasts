@@ -11,7 +11,7 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-chilpa-plugin-sdk = { git = "https://github.com/vicrodh/chilpa-plugins", tag = "protocol-4" }
+chilpa-plugin-sdk = { git = "https://github.com/vicrodh/chilpa-plugins-sdk", tag = "protocol-4" }
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]

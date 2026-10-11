@@ -25,6 +25,6 @@ tools/install-dev <out-dir>/app.chilpa.podcasts <test-XDG_DATA_HOME>
 cargo test
 ```
 
-The SDK comes from [chilpa-plugins](https://github.com/vicrodh/chilpa-plugins),
+The SDK comes from [chilpa-plugins-sdk](https://github.com/vicrodh/chilpa-plugins-sdk),
 pinned to the `protocol-4` tag in `Cargo.toml`. Recorded service replies
 exercise the directory paths without network access.
