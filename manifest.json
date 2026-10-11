@@ -1,0 +1,27 @@
+{
+  "id": "app.chilpa.podcasts",
+  "name": "Podcasts",
+  "version": "0.2.2",
+  "api_version": 1,
+  "kind": "source",
+  "description": "Shows from PodcastIndex, an open index of podcasts: by language and category, with every episode. It needs no account.",
+  "icon": "microphone2",
+  "capabilities": [
+    {
+      "type": "network",
+      "domains": [
+        "api.chilpa.app"
+      ]
+    },
+    {
+      "type": "register_source"
+    },
+    {
+      "type": "register_panel"
+    },
+    {
+      "type": "storage"
+    }
+  ],
+  "author": "vicrodh"
+}
