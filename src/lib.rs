@@ -239,7 +239,7 @@ plugin! {
     chilpa_resolver => resolve,
 }
 
-/// I identify the medium explicitly so the host never recognizes a provider.
+/// Names the medium so the host never has to recognize the provider.
 pub fn browse_document(ask: Browse) -> Result<chilpa_plugin_sdk::serde_json::Value, String> {
     let season_label = Words::of(&ask.language).season;
     let mut listing = browse(ask)?;
