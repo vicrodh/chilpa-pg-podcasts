@@ -26,5 +26,7 @@ cargo test
 ```
 
 The SDK comes from [chilpa-plugins-sdk](https://github.com/vicrodh/chilpa-plugins-sdk),
-pinned to the `protocol-4` tag in `Cargo.toml`. Recorded service replies
+pinned to revision `dc88a629ab646877a7328ee38ea4fbfe7669b362` in `Cargo.toml`. Recorded service replies
 exercise the directory paths without network access.
+
+The build helper uses Python 3 and packages the portable WASM module with its manifest.

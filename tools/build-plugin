@@ -1,35 +1,29 @@
-#!/usr/bin/env bash
-# Builds a plugin crate into the folder Chilpa installs: <out>/<id>/ with
-# plugin.wasm and manifest.json.
-#
-#   tools/build-plugin <crate dir> <out dir>
-#
-# The crate dir holds the Cargo.toml and the manifest.json. The release
-# profile of the workspace it belongs to should strip debug information:
-# without that a module of a few hundred kilobytes weighs megabytes.
-#
-# The target has to be installed once per machine:
-#   rustup target add wasm32-unknown-unknown
-set -euo pipefail
+#!/usr/bin/env python3
+"""Build a portable WASM plugin in <out>/<plugin id>."""
+import hashlib
+import json
+import pathlib
+import shutil
+import subprocess
+import sys
 
-crate_dir=$(cd "${1:?usage: build-plugin <crate dir> <out dir>}" && pwd)
-out_dir=${2:?usage: build-plugin <crate dir> <out dir>}
-manifest="$crate_dir/manifest.json"
-[ -f "$manifest" ] || { echo "build-plugin: $manifest is missing" >&2; exit 1; }
-
-id=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["id"])' "$manifest")
-name=$(cargo metadata --no-deps --format-version 1 --manifest-path "$crate_dir/Cargo.toml" |
-    python3 -c 'import json,sys; d=json.load(sys.stdin); m=sys.argv[1]; print(next(p["name"] for p in d["packages"] if p["manifest_path"]==m))' "$crate_dir/Cargo.toml")
-target_dir=$(cargo metadata --no-deps --format-version 1 --manifest-path "$crate_dir/Cargo.toml" |
-    python3 -c 'import json,sys; print(json.load(sys.stdin)["target_directory"])')
-
-cargo build --manifest-path "$crate_dir/Cargo.toml" -p "$name" --lib --release --target wasm32-unknown-unknown
-
-wasm="$target_dir/wasm32-unknown-unknown/release/${name//-/_}.wasm"
-[ -f "$wasm" ] || { echo "build-plugin: $wasm was not produced; is the crate a cdylib?" >&2; exit 1; }
-
-mkdir -p "$out_dir/$id"
-cp "$wasm" "$out_dir/$id/plugin.wasm"
-cp "$manifest" "$out_dir/$id/manifest.json"
-echo "build-plugin: $out_dir/$id/plugin.wasm $(stat -c %s "$out_dir/$id/plugin.wasm") bytes"
-sha256sum "$out_dir/$id/plugin.wasm"
+if len(sys.argv) != 3:
+    raise SystemExit("usage: build-plugin <crate dir> <out dir>")
+crate = pathlib.Path(sys.argv[1]).resolve()
+out = pathlib.Path(sys.argv[2])
+manifest = crate / "manifest.json"
+identity = json.loads(manifest.read_text())["id"]
+metadata = json.loads(subprocess.check_output([
+    "cargo", "metadata", "--no-deps", "--format-version", "1", "--manifest-path", str(crate / "Cargo.toml")]))
+name = next(package["name"] for package in metadata["packages"]
+            if pathlib.Path(package["manifest_path"]).resolve() == crate / "Cargo.toml")
+subprocess.run(["cargo", "build", "--manifest-path", str(crate / "Cargo.toml"),
+                "-p", name, "--lib", "--release", "--target", "wasm32-unknown-unknown"], check=True)
+wasm = pathlib.Path(metadata["target_directory"]) / "wasm32-unknown-unknown" / "release" / f"{name.replace('-', '_')}.wasm"
+folder = out / identity
+folder.mkdir(parents=True, exist_ok=True)
+shutil.copy2(wasm, folder / "plugin.wasm")
+shutil.copy2(manifest, folder / "manifest.json")
+artifact = folder / "plugin.wasm"
+print(f"build-plugin: {artifact} {artifact.stat().st_size} bytes")
+print(hashlib.sha256(artifact.read_bytes()).hexdigest(), artifact)

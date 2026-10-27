@@ -185,3 +185,18 @@ fn returning_to_a_show_or_repeating_search_does_not_hit_the_directory() {
     search(Query::new("radio", 10)).unwrap();
     assert_eq!(testing::asked().len(), 2);
 }
+
+#[test]
+fn episodes_keep_an_opaque_parent_and_explicit_audio_download_metadata() {
+    testing::reset();
+    testing::answer(&format!("{PROXY}/search/byterm?q=show&max=20"), 200, &recorded("search"));
+    search(Query::new("show", 10)).unwrap();
+    testing::answer(&format!("{PROXY}/episodes/byfeedid?id=634274&max=20"), 200, &recorded("episodes"));
+    let document = chilpa_pg_podcasts::browse_document(Browse::at("feed:634274")).unwrap();
+    let id = document["entries"][0]["id"].as_str().unwrap();
+    let metadata = &document["presentation"][id]["metadata"];
+    assert_eq!(metadata["parent_id"], "feed:634274");
+    assert_eq!(metadata["parent_title"], "");
+    assert_eq!(metadata["download_format"], "mp3");
+    assert!(metadata["download_url"].as_str().unwrap().starts_with("https://"));
+}

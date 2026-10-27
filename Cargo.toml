@@ -1,7 +1,7 @@
 [package]
 name = "chilpa-pg-podcasts"
 description = "Podcasts for Chilpa, as a plugin"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2021"
 license = "MIT"
 rust-version = "1.90"
@@ -11,7 +11,7 @@ publish = false
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-chilpa-plugin-sdk = { git = "https://github.com/vicrodh/chilpa-plugins-sdk", tag = "protocol-4" }
+chilpa-plugin-sdk = { git = "https://github.com/vicrodh/chilpa-plugins-sdk", rev = "dc88a629ab646877a7328ee38ea4fbfe7669b362" }
 serde = { version = "1", features = ["derive"] }
 
 [dev-dependencies]

@@ -1,7 +1,7 @@
 {
   "id": "app.chilpa.podcasts",
   "name": "Podcasts",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "api_version": 1,
   "kind": "source",
   "description": "Shows from PodcastIndex, an open index of podcasts: by language and category, with every episode. It needs no account.",

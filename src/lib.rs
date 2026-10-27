@@ -93,6 +93,11 @@ fn episode_entry(item: &Item, words: &Words) -> Option<Entry> {
         "season":item.season.map(|value| value.to_string()).unwrap_or_default(),
         "episode_type":item.episode_type.as_deref().unwrap_or("full"), "file_size":item.enclosure_length.unwrap_or(0).to_string(),
         "chapters_url":item.chapters_url.as_deref().unwrap_or_default(), "transcript_url":item.transcript(),
+        "download_url":if video { "" } else { address },
+        "download_format":resolve(Resolve::new(&format!("{EPISODE}{address}"))).ok().and_then(|stream| stream.codec).unwrap_or_else(|| match item.enclosure_type.split(';').next().unwrap_or("").trim() {
+            "audio/mpeg" => "mp3", "audio/mp4" | "audio/x-m4a" => "m4a", "audio/aac" => "aac", "audio/ogg" => "ogg",
+            "audio/opus" => "opus", "audio/flac" | "audio/x-flac" => "flac", "audio/wav" | "audio/x-wav" => "wav", _ => ""
+        }.into()),
         "people":chilpa_plugin_sdk::serde_json::to_string(&item.persons.as_deref().unwrap_or_default()).unwrap_or_default()
     });
     if let Ok(bytes) = chilpa_plugin_sdk::serde_json::to_vec(&extras) {
@@ -241,15 +246,21 @@ plugin! {
 
 /// Names the medium so the host never has to recognize the provider.
 pub fn browse_document(ask: Browse) -> Result<chilpa_plugin_sdk::serde_json::Value, String> {
+    let parent_id = ask.at.clone();
     let season_label = Words::of(&ask.language).season;
     let mut listing = browse(ask)?;
     let mut presentation = chilpa_plugin_sdk::serde_json::Map::new();
     for entry in &listing.entries {
         let season = entry.facts.iter().find(|fact| fact.label == season_label).map(|fact| fact.value.as_str()).unwrap_or("");
-        let metadata = entry.facts.iter().find(|fact| fact.label == "Episode reference")
+        let mut metadata = entry.facts.iter().find(|fact| fact.label == "Episode reference")
             .and_then(|fact| chilpa_plugin_sdk::host::store_get(&format!("episode-extra-{}", fact.value)))
             .and_then(|bytes| chilpa_plugin_sdk::serde_json::from_slice::<chilpa_plugin_sdk::serde_json::Value>(&bytes).ok())
             .unwrap_or_else(|| chilpa_plugin_sdk::serde_json::json!({"season":season}));
+        if entry.kind == EntryKind::Item {
+            metadata["parent_id"] = parent_id.clone().into();
+            metadata["parent_title"] = "".into();
+            metadata["parent_image"] = entry.image_url.as_deref().unwrap_or("").into();
+        }
         presentation.insert(entry.id.clone(), chilpa_plugin_sdk::serde_json::json!({"metadata":metadata}));
     }
     for entry in &mut listing.entries { entry.facts.retain(|fact| fact.label != "Episode reference"); }
