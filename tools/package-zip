@@ -1,0 +1,19 @@
+#!/usr/bin/env python3
+"""Package the built WASM module and its manifest without local paths."""
+import json
+from pathlib import Path
+import zipfile
+
+root = Path(__file__).resolve().parents[1]
+manifest = json.loads((root / 'manifest.json').read_text())
+staging = root / 'dist/staging' / manifest['id']
+output = root / 'dist' / f"chilpa-podcasts-{manifest['version']}.zip"
+with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
+    for name in ('manifest.json', 'plugin.wasm', 'LICENSE'):
+        source = root / name if name == 'LICENSE' else staging / name
+        info = zipfile.ZipInfo(name, (2026, 11, 21, 0, 0, 0))
+        info.create_system = 3
+        info.external_attr = 0o100644 << 16
+        info.compress_type = zipfile.ZIP_DEFLATED
+        archive.writestr(info, source.read_bytes())
+print(output)

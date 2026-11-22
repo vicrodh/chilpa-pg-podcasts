@@ -14,10 +14,10 @@ out = pathlib.Path(sys.argv[2])
 manifest = crate / "manifest.json"
 identity = json.loads(manifest.read_text())["id"]
 metadata = json.loads(subprocess.check_output([
-    "cargo", "metadata", "--no-deps", "--format-version", "1", "--manifest-path", str(crate / "Cargo.toml")]))
+    "cargo", "metadata", "--locked", "--offline", "--no-deps", "--format-version", "1", "--manifest-path", str(crate / "Cargo.toml")]))
 name = next(package["name"] for package in metadata["packages"]
             if pathlib.Path(package["manifest_path"]).resolve() == crate / "Cargo.toml")
-subprocess.run(["cargo", "build", "--manifest-path", str(crate / "Cargo.toml"),
+subprocess.run(["cargo", "build", "--locked", "--offline", "--manifest-path", str(crate / "Cargo.toml"),
                 "-p", name, "--lib", "--release", "--target", "wasm32-unknown-unknown"], check=True)
 wasm = pathlib.Path(metadata["target_directory"]) / "wasm32-unknown-unknown" / "release" / f"{name.replace('-', '_')}.wasm"
 folder = out / identity

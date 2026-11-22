@@ -20,9 +20,10 @@ progress.
 
 ```sh
 rustup target add wasm32-unknown-unknown
+cargo fetch --locked
 tools/build-plugin . <out-dir>
 tools/install-dev <out-dir>/app.chilpa.podcasts <test-XDG_DATA_HOME>
-cargo test
+cargo test --locked --offline
 ```
 
 The SDK comes from [chilpa-plugins-sdk](https://github.com/vicrodh/chilpa-plugins-sdk),
@@ -30,3 +31,10 @@ pinned to revision `dc88a629ab646877a7328ee38ea4fbfe7669b362` in `Cargo.toml`. R
 exercise the directory paths without network access.
 
 The build helper uses Python 3 and packages the portable WASM module with its manifest.
+
+## Release packages
+
+The Package checks workflow runs the tests and builds one portable WASM ZIP
+for native and Flatpak hosts. Its artifact includes the ZIP, SHA-256 and an
+archive validation report. Releases are published after exact-package host
+checks; a successful CI build does not publish a release automatically.
